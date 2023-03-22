@@ -1,210 +1,97 @@
-# lab03
-## Плышевская К. ИУ8-23. Лабораторная работа по ТиМП №3
-### Part 1
-Создала репозиторий на GitHub с названием lab03    
-Инициализируем переменные
+# lab04
+## Плышевская К. ИУ8-23. Лабораторная работа по ТиМП №4
+Создала репозиторий на GitHub с названием lab04    
+Клонируем lab03 внутри папки projects и переходим в неё:
 ```
-export GITHUB_USERNAME=jezzixxx
-export GITHUB_EMAIL=pkapav02@gmail.com
-export GITHUB_TOKEN=<сгенирированный_токен>
-```
-Выбираем режим редактирования nano:    
-`alias edit=nano`    
-Записываем в файл ~/.config/hub (EOF — маркер окончания записи):
-```
-cat > ~/.config/hub <<EOF
-github.com:
-- user: ${GITHUB_USERNAME}
-  oauth_token: ${GITHUB_TOKEN}
-  protocol: https
-EOF
-```
-Записываем глобальные настройки (протокол, имя и почта пользователя):    
-```
-git config --global hub.protocol https
-git config --global user.name ${GITHUB_USERNAME}
-git config --global user.email ${GITHUB_EMAIL}
-```
-Создаём папку lab03 внутри папки projects и переходим в неё:
-```
-mkdir lab03
+git clone https://github.com/jezzixxx/lab03.git
 cd lab03
 ```
-Создаём пустой репозиторий:    
-`git init`    
+Удаляем существующий репозиторий:    
+`git remote remove origin`  
 Добавляем удалённый репозиторий:    
-`git remote add origin https://github.com/${GITHUB_USERNAME}/lab03.git`    
-Создаём пустой файл README.md:    
-`touch README.md`    
-Добавляем созданный файл:    
-`git add README.md`    
-Создаём коммит "added README.md":    
-`git commit -m"added README.md"`    
-Загружаем коммит в ветку master:    
-`git push origin master`     
-Установка cmake из официальных репозиториев:    
-`sudo apt-get install cmake`    
-Создаём директорию "formatter_lib" и переходим в неё:    
+`git remote add origin https://github.com/${GITHUB_USERNAME}/lab04.git`    
+Удаляем папки **_build** из директорий **hello_world_application** и **solver_application**, чтобы избежать конфликта при сборке проекта через Github Actions.    
+Изменяем **CMakeLists.txt** во всех директориях библиотек: **solver_lib**, **formatter_lib** и **formatter_ex_lib**, используя **${CMAKE_CURRENT_SOURCE_DIR}** при сборке set. Например:    
+`set(SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/formatter_ex.cpp)`    
+Создаём директорию **.github/workflows** и переходим в неё:
 ```
-mkdir formatter_lib
-cd formatter_lib
+mkdir .github
+cd .github
+mkdir workflows
+cd workflows
 ```
-Загружаем файлы "formatter.h" и "formatter.cpp" из сети (ссылка типа raw при переходе в файл в репозитории. Необходима для корректного формата файла):
+Создаём файл формата **.yml**:    
+`touch CI.yml`    
+Заполняем его:    
+`nano CI.yml`    
+В открывшемся окне пишем (комментарии опускаем):
 ```
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/formatter_lib/formatter.h
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/formatter_lib/formatter.cpp
-```
-Создаём и наполняем файл CMakeLists.txt:    
-`nano CMakeLists.txt`    
-В открывшемся окне заполняем (комментарии не прописываем):
-```
-//Создание CMakeLists.txt для сборки библиотеки formatter:
-cmake_minimum_required(VERSION 3.10) 
-project(formatter)
+//Даём название "CMake"
+name: CMake
 
-//Установка стандарта языка, делаем его обязательным:
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+//Прописываем "триггеры" (действия, при выполнении которых будет выполняться программа)
+//Выбираем push и pull_request в ветку "master"
+on:
+ push:
+  branches: [master]
+ pull_request:
+  branches: [master]
 
-//Инициализируем исходники библиотеки (отдельно заголовки, отдельно cpp файлы):
-set(SOURCES ~/projects/lab03/formatter_lib/formatter.cpp)
-set(HEADERS ~/projects/lab03/formatter_lib/formatter.h)
+//Прописываем сами действия, используя два крупных раздела: сборка на Linux и на Windows. 
+//Используем виртуальные машины "ubuntu-latest" и "windows-latest" соответственно.
+//В steps пишем сами команды, необходимые для сборки.
+jobs: 
+ build_Linux:
 
-//Сборка статической библиотеки "formatter":
-add_library(formatter STATIC ${SOURCES} ${HEADERS})
-```
-Добавим упорядоченное дерево в путь поиска для включенных файлов:    
-`target_include_directories(formatter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})`    
-Проверим корректность заполнения CMakeLists.txt и найдём полный путь до файла:    
-`cmake -H. -B_build`
-### Part 2
-Создаём директорию "formatter_ex_lib" и переходим в неё:
-```
-mkdir formatter_ex_lib
-cd formatter_ex_lib
-```
-Загружаем файлы "formatter_ex.h" и "formatter_ex.cpp" из сети (ссылка типа raw при переходе в файл в репозитории. Необходима для корректного формата файла):
-```
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/formatter_ex_lib/formatter_ex.cpp
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/formatter_ex_lib/formatter_ex.h
-```
-Создаём и заполняем файл CMakeLists.txt:    
-`nano CMakeLists.txt`    
-В открывшемся окне заполняем (комментарии не пишем):
-```
-//Создание CMakeLists.txt для сборки библиотеки formatter_ex:
-cmake_minimum_required(VERSION 3.10) 
-project(formatter_ex)
+  runs-on: ubuntu-latest
 
-//Установка стандарта языка, делаем его обязательным:
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  steps:
+  //Используем готовый action "chekout"
+  - uses: actions/checkout@v3
 
-//Инициализируем исходники библиотеки (отдельно заголовки, отдельно cpp файлы):
-set(SOURCES ~/projects/lab03/formatter_ex_lib/formatter_ex.cpp)
-set(HEADERS ~/projects/lab03/formatter_ex_lib/formatter_ex.h)
+  //Называем шаг
+  - name: Configure Solver
+  //Пишем команду для сборки solver_application (дальше аналогично)
+  //${{github.workspace}} возвращает рабочий каталог по умолчанию
+    run: cmake ${{github.workspace}}/solver_application/ -B ${{github.workspace}}/solver_application/build
 
-//Сборка статической библиотеки "formatter_ex":
-add_library(formatter_ex STATIC ${SOURCES} ${HEADERS})
+  - name: Build Solver
+    run: cmake --build ${{github.workspace}}/solver_application/build
 
-//Добавим упорядоченное дерево в путь поиска для включенных файлов:
-target_include_directories(formatter_ex PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+  - name: Configure HelloWorld
+    run: cmake ${{github.workspace}}/hello_world_application/ -B ${{github.workspace}}/hello_world_application/build
 
-//Связываем с библиотекой formatter:
-target_link_libraries(formatter_ex formatter)
+  - name: Build HelloWorld
+    run: cmake --build ${{github.workspace}}/hello_world_application/build
+
+ build_Windows:
+
+  runs-on: windows-latest
+
+  steps:
+  - uses: actions/checkout@v3
+
+  - name: Configure Solver
+    run: cmake ${{github.workspace}}/solver_application/ -B ${{github.workspace}}/solver_application/build
+
+  - name: Build Solver
+    run: cmake --build ${{github.workspace}}/solver_application/build
+
+  - name: Configure HelloWorld
+    run: cmake ${{github.workspace}}/hello_world_application/ -B ${{github.workspace}}/hello_world_application/build
+
+  - name: Build HelloWorld
+    run: cmake --build ${{github.workspace}}/hello_world_application/build
 ```
-Проверим корректность заполнения CMakeLists.txt и найдём полный путь до файла:    
-`cmake -H. -B_build`
-### Part 3
-Создаём директорию "hello_world_application" и переходим в неё:
+Возвращаемся в директорию **lab03**:
 ```
-mkdir hello_world_application
-cd hello_world_application
-```
-Загружаем файл "hello_world.cpp" из сети (ссылка типа raw при переходе в файл в репозитории. Необходима для корректного формата файла):    
-`wget https://raw.githubusercontent.com/tp-labs/lab03/master/hello_world_application/hello_world.cpp`    
-Создаём и заполняем файл CMakeLists.txt:    
-`nano CMakeLists.txt`    
-В открывшемся окне заполняем (комментарии не прописываем):
-```
-//Создание CMakeLists.txt для программы "hello_world":
-cmake_minimum_required(VERSION 3.4)
-project(hello_world)
-
-//Установка стандарта языка, делаем его обязательным:
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-//Подключаем директории с библиотеками:
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../formatter_ex_lib ${CMAKE_CURRENT_SOURCE_DIR}/formatter_ex)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../formatter_lib ${CMAKE_CURRENT_SOURCE_DIR}/formatter)
-
-//Добавляем исполняемый файл
-add_executable(source hello_world.cpp)
-
-//Связываем с библиотеками formatter и formatter_ex:
-target_link_libraries(source formatter_ex)
-target_link_libraries(source formatter)
-```
-Аналогично создаём библиотеку solver_lib и проект solver_application:
-```
-mkdir solver_lib
-cd solver_lib
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/solver_lib/solver.cpp
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/solver_lib/solver.h
-nano CMakeLists.txt
-```
-В открывшемся окне заполняем:
-```
-cmake_minimum_required(VERSION 3.10) 
-project(formatter_ex)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(SOURCES ~/projects/lab03/solver_lib/solver.cpp)
-set(HEADERS ~/projects/lab03/solver_lib/solver.h)
-
-add_library(solver_lib STATIC ${SOURCES} ${HEADERS})
-target_include_directories(solver_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(solver_lib formatter)
-target_link_libraries(solver_lib formatter_ex)
-```
-Переходим обратно в терминал:
-```
-cmake -H. -B_build
 cd ..
-mkdir solver_application
-cd solver_application
-wget https://raw.githubusercontent.com/tp-labs/lab03/master/solver_application/equation.cpp
-nano CMakeLists.txt
+cd ..
 ```
-В открывшемся окне заполняем:
-```
-cmake_minimum_required(VERSION 3.10)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-project(solver)
-
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../solver_lib ${CMAKE_CURRENT_SOURCE_DIR}/solver_lib)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../formatter_ex_lib ${CMAKE_CURRENT_SOURCE_DIR}/formatter_ex)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../formatter_lib ${CMAKE_CURRENT_SOURCE_DIR}/formatter)
-
-add_executable(source equation.cpp)
-
-target_link_libraries(source solver_lib)
-target_link_libraries(source formatter_ex)
-target_link_libraries(source formatter)
-```
-ОБратно в терминал. Собираем проект:
-```
-cmake -H. -B_build
-cmake --build _build
-```
-Добавляем файлы и директории, создаём коммит, пушим:
-```
-git add <все директории, выпавшие при вызове git status>
-git commit -m"done work"
-git push origin master
-```
+Добавляем изменённые CMakeLists.txt во всех библиотеках, а также папку .github:    
+`git add formatter_ex_lib/CMakeLists.txt formatter_lib/CMakeLists.txt solver_lib/CMakeLists.txt .github`    
+Создаём коммит:    
+`git commit -m "added CI.yml"`    
+Пушим в ветку master:    
+`git push origin master`    
+Проверяем, что тесты на сайте Github прошли успешно.
